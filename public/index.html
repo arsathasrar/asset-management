@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Management - Input Modules</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+:root { --primary:#2c3e50; --secondary:#3498db; --accent:#e74c3c; --light:#ecf0f1; }
+body { background-color:#f8f9fa; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding:20px; }
+.header { background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%); color:white; padding:20px; border-radius:10px; margin-bottom:30px; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.card { border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1); margin-bottom:20px; border:none; transition: transform 0.3s; }
+.card:hover { transform:translateY(-5px); }
+.form-container { background-color:white; padding:30px; border-radius:10px; box-shadow:0 4px 6px rgba(0,0,0,0.1);}
+.category-badge { background-color: var(--secondary); color:white; padding:5px 10px; border-radius:20px; font-size:0.8rem; margin-left:10px; }
+.qr-barcode { max-width:200px; margin:0 auto; display:block; border:1px solid #ddd; border-radius:5px; padding:10px; background:white; }
+.success-alert { display:none; position:fixed; top:20px; right:20px; z-index:1000; box-shadow:0 4px 6px rgba(0,0,0,0.1); animation:fadeIn 0.5s, fadeOut 0.5s 2.5s;}
+@keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+@keyframes fadeOut { from{opacity:1;} to{opacity:0;} }
+.required-field::after { content:"*"; color:var(--accent); margin-left:4px; }
+.section-title { border-bottom:2px solid var(--secondary); padding-bottom:10px; margin-bottom:20px; color:var(--primary);}
+.navbar-custom { background-color: var(--primary); }
+.navbar-custom .navbar-brand, .navbar-custom .navbar-text { color: white; }
+</style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-custom mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#"><i class="fas fa-boxes me-2"></i>Asset Management</a>
+    <a href="history.html" class="btn btn-warning btn-sm">
+  <i class="fas fa-history me-1"></i>History
+</a>
+
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span id="welcomeText" class="fw-bold text-light"></span>
+      <button id="logoutBtn" class="btn btn-outline-light btn-sm">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+    <div class="header text-center">
+        <h1><i class="fas fa-plus-circle me-2"></i>Asset Input Module</h1>
+        <p class="lead">Add new assets to the management system</p>
+    </div>
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="form-container card">
+                <h3 class="section-title"><i class="fas fa-pencil-alt me-2"></i>Asset Details</h3>
+                <form id="asset-form">
+                    <div class="row mb-3">
+                        <div class="col-md-6" id="asset-category-col">
+                            <label for="asset-category" class="form-label required-field">Category</label>
+                            <select class="form-select" id="asset-category" required>
+                                <option value="">Select a category</option>
+                                <option value="assets">Assets</option>
+                                <option value="employees">Employees</option>
+                                <option value="maintenance_logs">Maintenance Logs</option>
+                                <option value="documents">Documents</option>
+                                <option value="depreciation_history">Depreciation History</option>
+                                <option value="it_hardware">IT Hardware</option>
+                                <option value="software_license">Software License</option>
+                                <option value="locations">Locations</option>
+                                <option value="machinery_equipment">Machinery & Equipment</option>
+                                <option value="digital_media">Digital Media</option>
+                                <option value="vehicles">Vehicles</option>
+                                <option value="real_estate">Real Estate</option>
+                                <option value="furniture">Furniture</option>
+                                <option value="financial_assets">Financial Assets</option>
+                                <option value="infrastructure">Infrastructure</option>
+                                <option value="tools">Tools</option>
+                                <option value="leased_assets">Leased Assets</option>
+                                <option value="intellectual_property">Intellectual Property</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6" id="asset-name-col">
+                            <label for="asset-name" class="form-label required-field">Asset Name</label>
+                            <input type="text" class="form-control" id="asset-name" placeholder="Enter asset name" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="serial-number" class="form-label">Serial Number</label>
+                            <input type="text" class="form-control" id="serial-number" placeholder="Enter serial number">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="employee-name" class="form-label">Assigned Employee</label>
+                            <input type="text" class="form-control" id="employee-name" placeholder="Enter employee name">
+                        </div>
+                    </div>
+                    <div id="dynamic-fields"></div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <button type="reset" class="btn btn-secondary me-md-2"><i class="fas fa-undo me-2"></i> Reset Form</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-plus-circle me-2"></i> Add Asset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="card-title mb-0"><i class="fas fa-eye me-2"></i>Asset Preview</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h4 id="preview-name">Asset Name</h4>
+                    <p>Category: <span id="preview-category" class="category-badge">Not selected</span></p>
+                    <p>Serial: <span id="preview-serial">N/A</span></p>
+                    <p>Employee: <span id="preview-employee">N/A</span></p>
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h6>QR Code</h6>
+                            <img id="preview-qr" class="qr-barcode" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=Sample">
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Barcode</h6>
+                            <img id="preview-barcode" class="qr-barcode" src="https://bwipjs-api.metafloor.com/?bcid=code128&text=Sample&scale=3&height=10&includetext">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-success success-alert" role="alert" id="success-alert">
+        <i class="fas fa-check-circle me-2"></i> Asset added successfully!
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // ✅ Fetch logged-in user (with cookies)
+    try {
+        const res = await fetch("/me", { credentials: "include" }); // 👈 include cookies
+        const data = await res.json();
+        if (data.loggedIn) {
+            document.getElementById("welcomeText").textContent = `Welcome, ${data.username}`;
+        } else {
+            window.location.href = "/login.html";
+        }
+    } catch (err) {
+        console.error("User fetch error:", err);
+        window.location.href = "/login.html";
+    }
+
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+        await fetch("/logout", { method: "POST", credentials: "include" }); // 👈 include cookies
+        window.location.href = "/login.html";
+    });
+
+    // --- Asset form JS ---
+    const assetForm = document.getElementById('asset-form');
+    const assetCategory = document.getElementById('asset-category');
+    const assetNameCol = document.getElementById('asset-name-col');
+    const dynamicFields = document.getElementById('dynamic-fields');
+    const assetNameInput = document.createElement('input');
+    assetNameInput.type = 'text';
+    assetNameInput.className = 'form-control';
+    assetNameInput.id = 'asset-name';
+    assetNameInput.placeholder = 'Enter asset name';
+    assetNameInput.required = true;
+
+    const serialNumber = document.getElementById('serial-number');
+    const employeeName = document.getElementById('employee-name');
+    const successAlert = document.getElementById('success-alert');
+
+    const previewName = document.getElementById('preview-name');
+    const previewCategory = document.getElementById('preview-category');
+    const previewSerial = document.getElementById('preview-serial');
+    const previewEmployee = document.getElementById('preview-employee');
+    const previewQr = document.getElementById('preview-qr');
+    const previewBarcode = document.getElementById('preview-barcode');
+
+    // 🔹 ADDED: make Serial No & Employee update preview live
+    serialNumber.addEventListener('input', updatePreview);
+    employeeName.addEventListener('input', updatePreview);
+
+    const categoryAssets = {
+        assets: ["Laptop","Projector","Printer","Scanner"],
+        employees: ["John Doe","Jane Smith","Michael Brown"],
+        maintenance_logs: ["AC Service","Generator Check","Elevator Maintenance"],
+        documents: ["Invoice","Contract","Policy Document"],
+        depreciation_history: ["Laptop Depreciation","Vehicle Depreciation"],
+        it_hardware: ["Desktop PC","Laptop","Monitor","Keyboard","Mouse"],
+        software_license: ["MS Office","Adobe Photoshop","Antivirus","ERP System"],
+        locations: ["Head Office","Branch 1","Branch 2","Warehouse"],
+        machinery_equipment: ["Forklift","CNC Machine","Drill Press"],
+        digital_media: ["Camera","Microphone","Tripod","Lighting Kit"],
+        vehicles: ["Sedan","SUV","Pickup Truck","Motorbike"],
+        real_estate: ["Office Building","Warehouse","Shop"],
+        furniture: ["Conference Table","Small Table","L-Shaped Table","Office Chair","Bookshelf"],
+        financial_assets: ["Stocks","Bonds","Mutual Funds","Cash Reserve"],
+        infrastructure: ["Server Room","Networking Equipment","Power Backup"],
+        tools: ["Hammer","Screwdriver Set","Wrench","Drill"],
+        leased_assets: ["Leased Car","Leased Printer","Leased Laptop"],
+        intellectual_property: ["Patent","Trademark","Copyright"]
+    };
+
+    const categoryFields = {
+        assets: [
+            { type: 'date', id: 'purchase_date', label: 'Purchase Date', placeholder: '' },
+            { type: 'number', id: 'value', label: 'Value ($)', placeholder: 'Enter asset value' }
+        ],
+        employees: [
+            { type: 'text', id: 'department', label: 'Department', placeholder: 'Enter department' },
+            { type: 'text', id: 'position', label: 'Position', placeholder: 'Enter job position' }
+        ],
+        maintenance_logs: [
+            { type: 'date', id: 'maintenance_date', label: 'Maintenance Date', placeholder: '' },
+            { type: 'text', id: 'technician', label: 'Technician', placeholder: 'Technician name' }
+        ],
+        it_hardware: [
+            { type: 'text', id: 'brand', label: 'Brand', placeholder: 'Device brand' },
+            { type: 'text', id: 'model', label: 'Model', placeholder: 'Device model' }
+        ],
+        vehicles: [
+            { type: 'text', id: 'make', label: 'Make', placeholder: 'Vehicle make' },
+            { type: 'text', id: 'model', label: 'Model', placeholder: 'Vehicle model' },
+            { type: 'text', id: 'year', label: 'Year', placeholder: 'Manufacturing year' }
+        ]
+    };
+
+    function updatePreview() {
+        const name = document.getElementById('asset-name')?.value || 'Asset Name';
+        const category = assetCategory.value || 'Not selected';
+        const serial = serialNumber.value || 'N/A';
+        const employee = employeeName.value || 'N/A';
+
+        previewName.textContent = name;
+        previewCategory.textContent = category;
+        previewSerial.textContent = serial;
+        previewEmployee.textContent = employee;
+
+        if (name !== 'Asset Name' && category !== 'Not selected') {
+            const qrData = encodeURIComponent(`${name}-${category}-${serial}-${employee}`);
+            previewQr.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}`;
+            const barcodeData = encodeURIComponent(serial || name);
+            previewBarcode.src = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${barcodeData}&scale=3&height=10&includetext`;
+        }
+    }
+
+    function updateDynamicFields() {
+        const category = assetCategory.value;
+        dynamicFields.innerHTML = '';
+
+        if (categoryAssets[category]) {
+            let selectHTML = `<label for="asset-name" class="form-label required-field">Asset Name</label>
+                <select class="form-select" id="asset-name" required>
+                    <option value="">Select ${category.replace('_',' ')} asset</option>`;
+            categoryAssets[category].forEach(name => { selectHTML+=`<option value="${name}">${name}</option>` });
+            selectHTML+='</select>';
+            assetNameCol.innerHTML = selectHTML;
+        } else {
+            assetNameCol.innerHTML = '';
+            assetNameCol.appendChild(assetNameInput);
+        }
+
+        // 🔹 FIXED: safely attach listeners to the new asset-name input
+        const assetNameEl = document.getElementById('asset-name');
+        if (assetNameEl) {
+            assetNameEl.addEventListener('input', updatePreview);
+            assetNameEl.addEventListener('change', updatePreview);
+        }
+
+        if (categoryFields[category]) {
+            const fields = categoryFields[category];
+            let html = '<div class="row mb-3"><div class="col-12"><h5 class="section-title">Additional Details</h5></div></div>';
+            fields.forEach((f,i)=>{
+                if(i%2===0) html+='<div class="row mb-3">';
+                html+=`<div class="col-md-6">
+                        <label for="${f.id}" class="form-label">${f.label}</label>
+                        <input type="${f.type}" class="form-control" id="${f.id}" placeholder="${f.placeholder}">
+                       </div>`;
+                if(i%2===1 || i===fields.length-1) html+='</div>';
+            });
+            dynamicFields.innerHTML+=html;
+        }
+    }
+
+    assetCategory.addEventListener('change', ()=>{ updateDynamicFields(); updatePreview(); });
+
+    assetForm.addEventListener('submit', async(e)=>{
+        e.preventDefault();
+        const category = assetCategory.value;
+        const name = document.getElementById('asset-name').value;
+        const serial = serialNumber.value;
+        const employee = employeeName.value;
+        const payload = { name, serial_number: serial, employee_name: employee };
+
+        if (categoryFields[category]) {
+            categoryFields[category].forEach(f=>{
+                const val = document.getElementById(f.id).value;
+                payload[f.id] = val;
+            });
+        }
+
+        try {
+            const res = await fetch(`http://localhost:3000/api/assets/${category}`,{
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body:JSON.stringify(payload),
+                credentials: "include" // 👈 include cookies
+            });
+            const data = await res.json();
+            if(data.success){
+                successAlert.style.display='block';
+                setTimeout(()=>successAlert.style.display='none',3000);
+                assetForm.reset();
+                updateDynamicFields();
+                updatePreview();
+            } else {
+                alert(data.error || 'Error adding asset');
+            }
+        } catch(err) {
+            alert('Server error: '+err.message);
+        }
+    });
+
+    updateDynamicFields();
+    updatePreview();
+});
+</script>
+
+
+</body>
+</html>
