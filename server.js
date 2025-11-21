@@ -152,7 +152,8 @@ function isAuthenticated(req, res, next) {
 }
 
 // --- Login API ---
-app.post("/login", async (req, res) => {
+// --- Login API ---
+app.post("/api/login", async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ success: false, error: "Username and password required" });
 
@@ -195,14 +196,14 @@ app.post("/forgot-password", async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
 
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = Date.now() + (process.env.RESET_TOKEN_EXPIRY || 3600000);
+    const expiresAt = Math.floor(Date.now() / 1000) + (parseInt(process.env.RESET_TOKEN_EXPIRY) || 3600); // Store as Unix timestamp in seconds
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS password_resets (
         id SERIAL PRIMARY KEY,
         username TEXT,
         token TEXT,
-        expires_at BIGINT
+        expires_at INTEGER
       )
     `);
 
@@ -242,7 +243,7 @@ app.post("/reset-password", async (req, res) => {
       return res.status(400).json({ success: false, message: "Invalid or expired token" });
 
     const resetEntry = tokenRes.rows[0];
-    if (Date.now() > resetEntry.expires_at)
+    if (Math.floor(Date.now() / 1000) > resetEntry.expires_at)
       return res.status(400).json({ success: false, message: "Token expired" });
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -402,7 +403,7 @@ app.get("/api/assets/:category", isAuthenticated, async (req, res) => {
   }
 });
 
-// --- Current user info ---/
+// --- Current user info ---
 app.get("/me", (req, res) => {
   if (req.session.user) res.json({ loggedIn: true, username: req.session.user.username, role: req.session.user.role });
   else res.json({ loggedIn: false });
@@ -410,3 +411,4 @@ app.get("/me", (req, res) => {
 
 // --- Start server ---
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
