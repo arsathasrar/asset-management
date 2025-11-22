@@ -12,17 +12,12 @@ const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const cors = require("cors");
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
 app.use(cors({
-  origin: "http://localhost:5173", // frontend origin
+  origin: process.env.FRONTEND_URL || "http://localhost:5173", // frontend origin
   credentials: true
 }));
 
@@ -44,11 +39,8 @@ app.use(session({
 
 // PostgreSQL connection
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 
 pool.on("connect", () => console.log("✅ Connected to PostgreSQL"));
@@ -215,7 +207,7 @@ app.post("/forgot-password", async (req, res) => {
     await client.query("DELETE FROM password_resets WHERE username=$1", [username]);
     await client.query("INSERT INTO password_resets (username, token, expires_at) VALUES ($1,$2,$3)", [username, token, expiresAt]);
 
-    const resetLink = `http://localhost:3000/reset-password.html?token=${token}`;
+    const resetLink = `${process.env.NODE_ENV === 'production' ? 'https' : 'http'}://${req.headers.host}/reset-password.html?token=${token}`;
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -415,5 +407,7 @@ app.get("/me", (req, res) => {
 });
 
 // --- Start server ---
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 
