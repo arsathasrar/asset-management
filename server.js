@@ -1,4 +1,7 @@
-require('dotenv').config(); // Load .env
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require("express");
 const { Pool } = require("pg");
 const bodyParser = require("body-parser");
@@ -406,8 +409,18 @@ app.get("/me", (req, res) => {
   else res.json({ loggedIn: false });
 });
 
-// --- Start server ---
+app.get('/health', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW() as now');
+    res.json({ status: 'ok', time: result.rows[0].now });
+  } catch (err) {
+    res.status(500).json({ status: 'error', error: err.message });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
