@@ -16,6 +16,11 @@ const PORT = 3000;
 
 const cors = require("cors");
 
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
 app.use(cors({
   origin: "http://localhost:5173", // frontend origin
   credentials: true
